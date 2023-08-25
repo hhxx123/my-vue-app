@@ -1,0 +1,15 @@
+@forward "element-plus/theme-chalk/src/common/var.scss" with (
+
+
+$font-size: (
+"base": 12px
+),
+//$bg-color:#232c37,
+);
+
+
+
+
+
+
+@use "element-plus/theme-chalk/src/index.scss" as *;

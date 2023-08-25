@@ -1,0 +1,25 @@
+$cc-loss-color:#fa4d4f;
+$cc-profit-color:#44c668;
+.el-container{
+  height:100%
+}
+ul li{
+  list-style: none;
+}
+//tooltip箭头
+.el-popper__arrow::before{
+  width:0!important;
+  height:0!important;
+}
+.el-popper{
+ inset: -10px auto auto 0px!important;
+}
+.el-popper{
+  line-height:0.5!important;
+}
+.el-descriptions__body{
+  background: var(--el-color-white)!important;
+}
+.el-table__header-wrapper tr td.el-table-fixed-column--left, .el-table__header-wrapper tr td.el-table-fixed-column--right, .el-table__header-wrapper tr th.el-table-fixed-column--left, .el-table__header-wrapper tr th.el-table-fixed-column--right, .el-table__body-wrapper tr td.el-table-fixed-column--left, .el-table__body-wrapper tr td.el-table-fixed-column--right, .el-table__body-wrapper tr th.el-table-fixed-column--left, .el-table__body-wrapper tr th.el-table-fixed-column--right, .el-table__footer-wrapper tr td.el-table-fixed-column--left, .el-table__footer-wrapper tr td.el-table-fixed-column--right, .el-table__footer-wrapper tr th.el-table-fixed-column--left, .el-table__footer-wrapper tr th.el-table-fixed-column--right{
+  background: var(--el-color-white)!important;
+}
