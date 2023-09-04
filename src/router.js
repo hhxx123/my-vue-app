@@ -8,6 +8,7 @@ const DemoInputSearch = () => import("./components/Demo/demo-input-search.vue")
 const DemoDetail = () => import("./components/Demo/demo-detail.vue")
 const DemoDropDown = ()=> import("./components/Demo/demo-dropdown.vue")
 const DemoVirtualList = ()=> import("./components/Demo/demo-virtual-list.vue");
+const DemoVirtualListStronger = ()=>import("./components/Demo/demo-virtual-list-stronger.vue");
 
 const routes = [
   {path: "/", component: demo},
@@ -39,7 +40,11 @@ const routes = [
       {
         path:"/demo/demo-virtual-list",
         component:DemoVirtualList
-      }]
+      },
+      {
+        path:"/demo/demo-virtual-list-stronger",
+        component:DemoVirtualListStronger}
+    ]
   },
 ]
 const router = createRouter({

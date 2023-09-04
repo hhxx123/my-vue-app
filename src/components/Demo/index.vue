@@ -5,6 +5,7 @@
   import DemoDetail from "./demo-detail.vue"
   import DemoDropDown from "./demo-dropdown.vue"
   import DemoVirtualList from "./demo-virtual-list.vue"
+  import DemoVirtualListStronger from "./demo-virtual-list-stronger.vue"
   import $store from "../../store/index";
 
   import {CHANGE_THEME} from "../../store/types";
@@ -29,6 +30,10 @@
     {
       name: "demo-virtual-list",
       component: DemoVirtualList
+    },
+     {
+      name: "demo-virtual-list-stronger",
+      component: DemoVirtualListStronger
     },
 
   ]

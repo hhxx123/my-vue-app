@@ -58,7 +58,7 @@
       </el-header>
 
       <el-main>
-        <el-scrollbar>
+        <el-scrollbar height="100%">
           <router-view></router-view>
         </el-scrollbar>
       </el-main>
@@ -132,7 +132,7 @@
   ]
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
   .cc_el-header{
     display: flex;
     justify-content: space-between;
@@ -188,4 +188,8 @@
   .cc_header-left{
     flex: 1;
   }
+  .el-scrollbar__view{
+    height:100%;
+  }
+
 </style>

@@ -5,7 +5,7 @@ import Components from "unplugin-vue-components/vite"
 import {ElementPlusResolver} from "unplugin-vue-components/resolvers";
 import vueJSX from "@vitejs/plugin-vue-jsx"
 const path = require('path');
-const root = path.resolve(__dirname, 'src')
+const root = path.resolve(__dirname, 'src');
 
 // https://vitejs.dev/config/
 
