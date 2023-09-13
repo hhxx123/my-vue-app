@@ -145,28 +145,28 @@ const listBodyHeight = computed(() => {
 });
 
 const handleScroll = (event) => {
-  // console.log("###event",event);
   //通过滚动距离计算元素的显示范围
   obj.scrollTop = event.target.scrollTop;
   //二分查找效率更高
   let rangeStart = binarySearch(obj.scrollTop);
-  // if (obj.positions[rangeStart].bottom < obj.scrollTop) {
-  //   rangeStart += 1;
-  // }
   obj.rangeStart = rangeStart;
-  // listViewRef.value.style.paddingTop =
-  //   rangeStart > 0 ? obj.positions[rangeStart - 1].bottom + "px" : 0;
   let startOffset =
         rangeStart >= 1 ? obj.positions[rangeStart - 1].bottom : 0;
       listViewRef.value.style.transform = `translate3d(0,${startOffset}px,0)`;
   // 添加触底加载更多的功能
   const clientHeight = event.target.clientHeight;
   const scrollHeight = event.target.scrollHeight;
+  loadMore(clientHeight,scrollHeight);
+};
+
+/**到底部去加载更多元素 */
+const loadMore = (clientHeight,scrollHeight)=>{
   const isScrolledToBottom = obj.scrollTop + clientHeight >= scrollHeight;
   if (isScrolledToBottom) {
+    console.log("ended");
     //这个时候去加载更多数据
   }
-};
+}
 
 //搜索rangeStart元素
 const binarySearch = (scrollTop = 0) => {
@@ -190,19 +190,6 @@ const binarySearch = (scrollTop = 0) => {
   return tempIndex;
 };
 
-/**定高的range计算 */
-// const range = computed(() => {
-//   const { itemHeight, cacheCount } = props;
-//   const { scrollTop, containCount } = obj;
-//   const rangeStart = Math.ceil(scrollTop / itemHeight);
-//   const allDataLength = allData.length,
-//     end = containCount + cacheCount + rangeStart;
-//   return {
-//     rangeStart,
-//     rangeEnd: end > allDataLength ? allDataLength : end,
-//   };
-// });
-
 /**不定高的range计算 */
 const range = computed(() => {
   const { rangeStart, containCount } = obj;
@@ -222,7 +209,6 @@ const showData = computed(() => {
   return tempData.slice(range.value.rangeStart, range.value.rangeEnd);
 });
 
-// const itemHeightStyle = ref(props.itemHeight + "px");
 </script>
 <style lang="scss" scoped >
 .list-wrap {
