@@ -1,8 +1,5 @@
 
 <template>
-  <div>虚拟列表</div>
-  {{ listBodyHeight }}
-  {{ range }}
   <div class="list-wrap" ref="listWrapRef" @scroll="handleScroll">
     <div
       class="list-body"
@@ -28,65 +25,20 @@
  * 能放得下所有元素的容器
  * 渲染的区域
  */
-import { onMounted, computed, ref, reactive, onUpdated, nextTick } from "vue";
+import {
+  onMounted,
+  computed,
+  ref,
+  reactive,
+  onUpdated,
+  nextTick,
+  watch,
+  watchEffect,
+} from "vue";
 
 const listWrapRef = ref(null),
   listBodyRef = ref(null),
   listViewRef = ref(null);
-
-const allData = [];
-onMounted(() => {
-  // 生成随机长度的汉字（范围为3到10个汉字）
-  for (let i = 0; i < 1000; i++) {
-    allData.push({
-      id: i,
-      name: generateRandomChinese(Math.floor(Math.random() * 100 + i)),
-      code: i,
-    });
-  }
-  init();
-  initPositions();
-});
-
-onUpdated(() => {
-  nextTick(() => {
-    updatePositions();
-  });
-});
-
-const initPositions = () => {
-  const { itemHeight } = props;
-  obj.positions = allData.map((item, index) => {
-    return {
-      index,
-      height: itemHeight,
-      top: index * itemHeight,
-      bottom: (index + 1) * itemHeight,
-      doHeight: 0,
-    };
-  });
-};
-
-const updatePositions = () => {
-  const nodes = listViewRef.value.children;
-  Array.from(nodes).forEach((node) => {
-    let rect = node.getBoundingClientRect();
-    let height = rect.height;
-    let index = Number(node.id);
-    let oldHeight = obj.positions[index].height;
-    let dValue = height - oldHeight;
-    if (dValue != 0) {
-      obj.positions[index].height = height;
-      obj.positions[index].bottom = obj.positions[index].bottom + dValue;
-      // 更新后面的元素
-      for (let k = index + 1; k < obj.positions.length; k++) {
-        obj.positions[k].top = obj.positions[k - 1].bottom;
-        obj.positions[k].bottom = obj.positions[k].bottom + dValue;
-      }
-    }
-  });
-  // console.log(obj.positions);
-};
 
 const props = defineProps({
   itemHeight: {
@@ -103,6 +55,11 @@ const props = defineProps({
     //容器的最小高度，如果容器作为子元素很可能占位过小，导致可能展示半条元素高度
     default: "",
     type: [String, Number],
+  },
+  data: {
+    // 所有数据
+    default: [],
+    type: Array,
   },
 });
 
@@ -122,13 +79,15 @@ const obj = reactive({
   ],
 });
 
-//列表总高度
-const listBodyHeight = computed(() => {
-  /* 定高时的计算
-   *return allData.length * props.itemHeight
-   */
-  // 动态高度时列表总高度就是最后一个元素的bottom值
-  return obj.positions[obj.positions.length - 1].bottom;
+onMounted(() => {
+  init();
+  initPositions();
+});
+
+onUpdated(() => {
+  nextTick(() => {
+    updatePositions();
+  });
 });
 
 const init = () => {
@@ -138,18 +97,75 @@ const init = () => {
   obj.containCount = Math.floor(listWrapHeight / itemHeight);
 };
 
+const initPositions = () => {
+  const { itemHeight, data } = props;
+  obj.positions = data.map((item, index) => {
+    return {
+      index,
+      height: itemHeight,
+      top: index * itemHeight,
+      bottom: (index + 1) * itemHeight,
+      doHeight: 0,
+    };
+  });
+};
+
+watchEffect(() => {//依赖项发生更改时
+  initPositions();
+});
+
+const updatePositions = () => {
+  const nodes = listViewRef.value.children;
+  Array.from(nodes).forEach((node) => {
+    let rect = node.getBoundingClientRect();
+    let height = rect.height;
+    let index = Number(node.id);
+
+    let oldHeight = obj.positions[index].height;
+    let dValue =  oldHeight - height;
+    if (dValue != 0) {
+      obj.positions[index].height = height;
+      obj.positions[index].bottom = obj.positions[index].bottom - dValue;
+      // 更新后面的元素
+      for (let k = index + 1; k < obj.positions.length; k++) {
+        obj.positions[k].top = obj.positions[k - 1].bottom;
+        obj.positions[k].bottom = obj.positions[k].bottom - dValue;
+      }
+    }
+  });
+};
+
+//列表总高度
+const listBodyHeight = computed(() => {
+  /* 定高时的计算
+   *return allData.length * props.itemHeight
+   */
+  // 动态高度时列表总高度就是最后一个元素的bottom值
+  return obj.positions[obj.positions.length - 1]?.bottom;
+});
+
 const handleScroll = (event) => {
+  // console.log("###event",event);
   //通过滚动距离计算元素的显示范围
   obj.scrollTop = event.target.scrollTop;
   //二分查找效率更高
   let rangeStart = binarySearch(obj.scrollTop);
-  if(obj.positions[rangeStart].bottom < obj.scrollTop){
-      rangeStart+=1;
-  }
-  console.log("scroll",rangeStart);
+  // if (obj.positions[rangeStart].bottom < obj.scrollTop) {
+  //   rangeStart += 1;
+  // }
   obj.rangeStart = rangeStart;
-  listBodyRef.value.style.paddingTop =
-    rangeStart > 0 ? obj.positions[rangeStart - 1].bottom + "px" : 0;
+  // listViewRef.value.style.paddingTop =
+  //   rangeStart > 0 ? obj.positions[rangeStart - 1].bottom + "px" : 0;
+  let startOffset =
+        rangeStart >= 1 ? obj.positions[rangeStart - 1].bottom : 0;
+      listViewRef.value.style.transform = `translate3d(0,${startOffset}px,0)`;
+  // 添加触底加载更多的功能
+  const clientHeight = event.target.clientHeight;
+  const scrollHeight = event.target.scrollHeight;
+  const isScrolledToBottom = obj.scrollTop + clientHeight >= scrollHeight;
+  if (isScrolledToBottom) {
+    //这个时候去加载更多数据
+  }
 };
 
 //搜索rangeStart元素
@@ -158,14 +174,17 @@ const binarySearch = (scrollTop = 0) => {
   let end = obj.positions.length - 1;
   let tempIndex;
   while (start <= end) {
-    tempIndex = Math.floor((start + end) / 2);
-    let midBottom = obj.positions[tempIndex].bottom;
-    if (midBottom === scrollTop) {
-      return tempIndex;
-    } else if (midBottom > scrollTop) {
-      end = tempIndex - 1;
-    } else {
-      start = tempIndex + 1;
+    let midIndex = Math.floor((start + end) / 2);
+    let midValue = obj.positions[midIndex].bottom;
+    if (midValue === scrollTop) {
+      return midIndex + 1;
+    } else if(midValue < scrollTop){
+      start = midIndex + 1;
+    }else if(midValue > scrollTop){
+      if(!tempIndex || tempIndex > midIndex){
+        tempIndex = midIndex
+      }
+      end = end - 1;
     }
   }
   return tempIndex;
@@ -185,43 +204,29 @@ const binarySearch = (scrollTop = 0) => {
 // });
 
 /**不定高的range计算 */
-const range = computed(()=>{
-  const {rangeStart,containCount} = obj;
-  const {cacheCount} = props;
-  const allDataLength = allData.length,
-  end = containCount + cacheCount + rangeStart;
+const range = computed(() => {
+  const { rangeStart, containCount } = obj;
+  const { cacheCount, data } = props;
+  const allDataLength = data.length,
+    end = containCount + cacheCount + rangeStart;
   const rangeEnd = end > allDataLength ? allDataLength : end;
   return {
     rangeStart,
-    rangeEnd
-  }
-})
+    rangeEnd,
+  };
+});
 
 //每次区域内展示的数据
 const showData = computed(() => {
-  let tempData = allData.slice(0);
-  return tempData.slice(range.value.rangeStart,range.value.rangeEnd);
+  let tempData = props.data.slice(0);
+  return tempData.slice(range.value.rangeStart, range.value.rangeEnd);
 });
 
-//mock数据
-// 生成指定长度的汉字字符串
-function generateRandomChinese(length) {
-  let result = "";
-  const base = 0x4e00; // 汉字编码的起始位置
-  const range = 0x9fa5 - base + 1; // 汉字的总数量
-
-  for (let i = 0; i < length; i++) {
-    const codePoint = base + Math.floor(Math.random() * range);
-    result += String.fromCodePoint(codePoint);
-  }
-  return result;
-}
-
-const itemHeightStyle = ref(props.itemHeight + "px");
+// const itemHeightStyle = ref(props.itemHeight + "px");
 </script>
 <style lang="scss" scoped >
 .list-wrap {
-  height: 100%;
+  height: 400px;
   color: #fff;
   overflow: auto;
   .list-body {
